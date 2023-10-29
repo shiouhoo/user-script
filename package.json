@@ -1,0 +1,29 @@
+{
+  "name": "user-script",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "author": "shiouhoo",
+  "description": "user-script",
+  "scripts": {
+    "dev": "vite --mode yapi-create",
+    "build:yapi": "vue-tsc --noEmit && vite build --mode yapi-create",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "element-plus": "^2.4.1",
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@shiouhoo/eslint-config": "^1.0.8",
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
+    "@vitejs/plugin-vue": "^4.2.3",
+    "eslint": "^8.52.0",
+    "eslint-plugin-vue": "^9.18.1",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.8",
+    "vite-plugin-monkey": "^3.4.0",
+    "vue-tsc": "^1.8.8"
+  }
+}
