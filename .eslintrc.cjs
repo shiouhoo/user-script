@@ -36,6 +36,6 @@ module.exports = {
         'vue'
     ],
     rules: {
-        'no-console': 'warn',
+        '@typescript-eslint/no-explicit-any': 'warn',
     }
 };

@@ -1,13 +1,14 @@
-import { Component, createApp } from 'vue';
+import { Component, createApp, nextTick } from 'vue';
 import CreateAxios from './CreateAxios.vue';
 import CreateTypes from './CreateTypes.vue';
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
+import { historyWatch } from '../util/histotyWatch';
 
 async function init() {
     let domList = document.querySelectorAll('.interface-title');
     while(!domList.length) {
-        await new Promise((resolve)=>{
+        await new Promise<void>((resolve) => {
             setTimeout(() => {
                 domList = document.querySelectorAll('.interface-title');
                 resolve();
@@ -15,32 +16,42 @@ async function init() {
         });
     }
     domList.forEach((el) => {
+        let list:any[] = [];
         let com:Component | null = null;
         switch (el.textContent) {
         case '基本信息':
             com = CreateAxios;
+            list = [el];
             break;
         case '请求参数':
             com = CreateTypes;
-            // while(!el.textContent.includes('Query') && !el.textContent.includes('Body')) {
-            //     el = el.nextElementSibling;
-            //     if(!el) return;
-            // }
-            // el = el?.firstChild as HTMLElement;
+            while(el) {
+                if(el.textContent?.includes('Query') || el.textContent?.includes('Body')) {
+                    list.push(el?.firstChild as HTMLElement);
+                }
+                el = el.nextElementSibling!;
+                if(!el) break;
+            }
             break;
         case '返回数据':
+            list = [el];
             com = CreateTypes;
         }
         if(!com) return;
-        createApp(com).use(ElementPlus).mount(
-            (() => {
-                const app = document.createElement('div');
-                app.style.display = 'inline-block';
-                app.style.marginLeft = '20px';
-                el.append(app);
-                return app;
-            })(),
-        );
+        for(let i = 0;i < list.length;i++) {
+            createApp(com).use(ElementPlus).mount(
+                (() => {
+                    const app = document.createElement('div');
+                    app.style.display = 'inline-block';
+                    app.style.marginLeft = '20px';
+                    list[i].append(app);
+                    return app;
+                })(),
+            );
+        }
     });
 }
 init();
+historyWatch(()=>{
+    nextTick(()=> init());
+});
