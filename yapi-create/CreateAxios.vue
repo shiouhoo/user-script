@@ -8,7 +8,7 @@ const handleClick = () => {
     const panel = btnRef.value?.parentElement?.parentElement?.nextElementSibling;
 
     if(panel) {
-        const methodDom = panel.querySelector('.ant-row:nth-child(3) .tag-method');
+        const methodDom = panel.querySelector('.ant-row .tag-method');
         /** 请求方法 */
         const method = methodDom?.textContent?.toLowerCase();
         /** 请求url */
@@ -16,12 +16,12 @@ const handleClick = () => {
         /** 函数名 */
         const name = url?.split('/').slice(-1)[0];
         /** 注释 */
-        const describtion = panel.querySelector('.ant-row:nth-child(1) .colName')?.textContent;
+        const describtion = panel.querySelector('.ant-row .colName')?.textContent;
 
         const template = `
 /** ${describtion} */
 export const ${name} = (params: any): Promise<any> => {
-    return axios.${method}('${url}', ${method === 'get' ? '{ params }' : 'params'}});
+    return axios.${method}('${url}', ${method === 'get' ? '{ params }' : 'params'});
 };`;
         navigator.clipboard.writeText(template.trim());
         ElMessage.success('成功复制到剪切板');
