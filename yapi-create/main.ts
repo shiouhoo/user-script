@@ -26,7 +26,7 @@ async function init() {
         case '请求参数':
             com = CreateTypes;
             while(el) {
-                if(el?.firstChild?.textContent === 'Query:' || el?.firstChild?.textContent === 'Body:') {
+                if(el?.firstChild?.textContent?.startsWith('Query') || el?.firstChild?.textContent?.startsWith('Body')) {
                     list.push(el?.firstChild as HTMLElement);
                 }
                 el = el.nextElementSibling!;

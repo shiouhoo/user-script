@@ -39,13 +39,18 @@ function modifyDom(dom: Node) {
 
 function getResponseTypes(panel: Element | null | undefined, level = 0) {
     let obj = '{\r\n';
-    let trList: any = panel?.querySelectorAll(` tr.ant-table-row-level-${level}`);
+    let trList = [...(panel?.querySelectorAll(` tr.ant-table-row-level-${level}`) || [])];
     if((!trList || !trList.length) && level === 0) {
         trList = [<Element>panel];
         panel = panel?.parentElement;
     }
-    trList.forEach((tr) => {
+    if((!trList || !trList.length) && level !== 0) {
+        return '{}';
+    }
+
+    trList?.forEach((tr) => {
         const name = tr.querySelector(`td:nth-child(${responsetableIndex.name})`)?.textContent;
+        if(!name) return;
         let type = tr.querySelector(`td:nth-child(${responsetableIndex.type})`)?.textContent?.replaceAll(' ', '');
         if (type === 'integer') {
             type = 'number';
@@ -54,9 +59,10 @@ function getResponseTypes(panel: Element | null | undefined, level = 0) {
         } else if (type === 'object[]') {
             type = getResponseTypes(panel, level + 1) + '[]';
         }
+        // TODO 多行注释优化
         let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent;
         const tab = '    '.repeat(level + 1);
-        description = description?.trim() ? `${tab}/** ${description} */\r\n` : '';
+        description = description?.trim() ? `${tab}/** ${description.replaceAll('\n', `\n${tab}* `)} */\r\n` : '';
         const item = `${description}${tab}${name}: ${type};\r\n`;
         obj += item;
     });
