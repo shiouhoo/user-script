@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yapi-create
 // @namespace    shiouhoo/yapi-create
-// @version      0.0.3
+// @version      0.0.4
 // @author       shiouhoo
 // @description  这是一个用于yapi的插件，快捷生成ts类型以及axios请求
 // @license      MIT
@@ -14,7 +14,7 @@
 // @grant        GM_getResourceText
 // ==/UserScript==
 
-(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-a79b8f26]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s} ");
+(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-359bdd73]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s} ");
 
 (function (vue, ElementPlus) {
   'use strict';
@@ -57,7 +57,7 @@ export const ${name} = (params: any): Promise<any> => {
       };
     }
   });
-  const _withScopeId = (n) => (vue.pushScopeId("data-v-a79b8f26"), n = n(), vue.popScopeId(), n);
+  const _withScopeId = (n) => (vue.pushScopeId("data-v-359bdd73"), n = n(), vue.popScopeId(), n);
   const _hoisted_1 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ vue.createElementVNode("span", null, "复制类型", -1));
   const _sfc_main = /* @__PURE__ */ vue.defineComponent({
     __name: "CreateTypes",
@@ -92,14 +92,19 @@ export const ${name} = (params: any): Promise<any> => {
       }
       function getResponseTypes(panel, level = 0) {
         let obj = "{\r\n";
-        let trList = panel == null ? void 0 : panel.querySelectorAll(` tr.ant-table-row-level-${level}`);
+        let trList = [...(panel == null ? void 0 : panel.querySelectorAll(` tr.ant-table-row-level-${level}`)) || []];
         if ((!trList || !trList.length) && level === 0) {
           trList = [panel];
           panel = panel == null ? void 0 : panel.parentElement;
         }
-        trList.forEach((tr) => {
+        if ((!trList || !trList.length) && level !== 0) {
+          return "{}";
+        }
+        trList == null ? void 0 : trList.forEach((tr) => {
           var _a, _b, _c, _d;
           const name = (_a = tr.querySelector(`td:nth-child(${responsetableIndex.name})`)) == null ? void 0 : _a.textContent;
+          if (!name)
+            return;
           let type2 = (_c = (_b = tr.querySelector(`td:nth-child(${responsetableIndex.type})`)) == null ? void 0 : _b.textContent) == null ? void 0 : _c.replaceAll(" ", "");
           if (type2 === "integer") {
             type2 = "number";
@@ -110,7 +115,8 @@ export const ${name} = (params: any): Promise<any> => {
           }
           let description = (_d = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)) == null ? void 0 : _d.textContent;
           const tab = "    ".repeat(level + 1);
-          description = (description == null ? void 0 : description.trim()) ? `${tab}/** ${description} */\r
+          description = (description == null ? void 0 : description.trim()) ? `${tab}/** ${description.replaceAll("\n", `
+${tab}* `)} */\r
 ` : "";
           const item = `${description}${tab}${name}: ${type2};\r
 `;
@@ -251,7 +257,7 @@ export const ${name} = (params: any): Promise<any> => {
     }
     return target;
   };
-  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-a79b8f26"]]);
+  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-359bdd73"]]);
   const cssLoader = (e) => {
     const t = GM_getResourceText(e), o = document.createElement("style");
     return o.innerText = t, document.head.append(o), t;
@@ -293,7 +299,7 @@ export const ${name} = (params: any): Promise<any> => {
       });
     }
     domList.forEach((el) => {
-      var _a, _b;
+      var _a, _b, _c, _d;
       let list = [];
       let com = null;
       switch (el.textContent) {
@@ -304,7 +310,7 @@ export const ${name} = (params: any): Promise<any> => {
         case "请求参数":
           com = CreateTypes;
           while (el) {
-            if (((_a = el.textContent) == null ? void 0 : _a.includes("Query")) || ((_b = el.textContent) == null ? void 0 : _b.includes("Body"))) {
+            if (((_b = (_a = el == null ? void 0 : el.firstChild) == null ? void 0 : _a.textContent) == null ? void 0 : _b.startsWith("Query")) || ((_d = (_c = el == null ? void 0 : el.firstChild) == null ? void 0 : _c.textContent) == null ? void 0 : _d.startsWith("Body"))) {
               list.push(el == null ? void 0 : el.firstChild);
             }
             el = el.nextElementSibling;
