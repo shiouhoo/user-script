@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yapi-create
 // @namespace    shiouhoo/yapi-create
-// @version      0.0.4
+// @version      0.0.5
 // @author       shiouhoo
 // @description  这是一个用于yapi的插件，快捷生成ts类型以及axios请求
 // @license      MIT
@@ -310,6 +310,9 @@ ${tab}* `)} */\r
         case "请求参数":
           com = CreateTypes;
           while (el) {
+            if (el.innerHTML.includes("button")) {
+              break;
+            }
             if (((_b = (_a = el == null ? void 0 : el.firstChild) == null ? void 0 : _a.textContent) == null ? void 0 : _b.startsWith("Query")) || ((_d = (_c = el == null ? void 0 : el.firstChild) == null ? void 0 : _c.textContent) == null ? void 0 : _d.startsWith("Body"))) {
               list.push(el == null ? void 0 : el.firstChild);
             }

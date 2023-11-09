@@ -16,7 +16,7 @@ async function init() {
         });
     }
     domList.forEach((el) => {
-        let list: Node[] = [];
+        let list: Element[] = [];
         let com:Component | null = null;
         switch (el.textContent) {
         case '基本信息':
@@ -26,6 +26,9 @@ async function init() {
         case '请求参数':
             com = CreateTypes;
             while(el) {
+                if(el.innerHTML.includes('button')) {
+                    break;
+                }
                 if(el?.firstChild?.textContent?.startsWith('Query') || el?.firstChild?.textContent?.startsWith('Body')) {
                     list.push(el?.firstChild as HTMLElement);
                 }
