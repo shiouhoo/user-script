@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 
 const btnRef = ref<HTMLElement>();
@@ -147,6 +147,7 @@ onMounted(() => {
             for (let mutation of mutations) {
                 if (mutation.type === 'childList') {
                     const target = mutation.addedNodes[0];
+                    if(!target) return;
                     modifyDom(target.firstChild as Node);
                 }
             }
@@ -154,6 +155,9 @@ onMounted(() => {
         tableDom && observer.observe(tableDom, {
             childList: true,
             subtree: true,
+        });
+        onBeforeUnmount(()=>{
+            observer.disconnect();
         });
     }
 });
