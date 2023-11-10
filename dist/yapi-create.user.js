@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         yapi-create
 // @namespace    shiouhoo/yapi-create
-// @version      0.0.5
+// @version      0.0.6
 // @author       shiouhoo
 // @description  这是一个用于yapi的插件，快捷生成ts类型以及axios请求
 // @license      MIT
 // @icon         https://vitejs.dev/logo.svg
-// @match         *://trsyapi.trscd.com.cn/project/*
+// @match         *://*.trscd.com.cn/project/*
 // @require      https://cdn.bootcdn.net/ajax/libs/vue/3.3.4/vue.global.prod.js
 // @require      data:application/javascript,window.Vue%3DVue%3B
 // @require      https://cdn.bootcdn.net/ajax/libs/element-plus/2.4.1/index.full.min.js
@@ -14,7 +14,7 @@
 // @grant        GM_getResourceText
 // ==/UserScript==
 
-(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-359bdd73]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s} ");
+(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-ee387c0b]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s} ");
 
 (function (vue, ElementPlus) {
   'use strict';
@@ -57,7 +57,7 @@ export const ${name} = (params: any): Promise<any> => {
       };
     }
   });
-  const _withScopeId = (n) => (vue.pushScopeId("data-v-359bdd73"), n = n(), vue.popScopeId(), n);
+  const _withScopeId = (n) => (vue.pushScopeId("data-v-ee387c0b"), n = n(), vue.popScopeId(), n);
   const _hoisted_1 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ vue.createElementVNode("span", null, "复制类型", -1));
   const _sfc_main = /* @__PURE__ */ vue.defineComponent({
     __name: "CreateTypes",
@@ -203,6 +203,8 @@ ${tab}* `)} */\r
             for (let mutation of mutations) {
               if (mutation.type === "childList") {
                 const target = mutation.addedNodes[0];
+                if (!target)
+                  return;
                 modifyDom(target.firstChild);
               }
             }
@@ -210,6 +212,9 @@ ${tab}* `)} */\r
           tableDom && observer.observe(tableDom, {
             childList: true,
             subtree: true
+          });
+          vue.onBeforeUnmount(() => {
+            observer.disconnect();
           });
         }
       });
@@ -257,7 +262,7 @@ ${tab}* `)} */\r
     }
     return target;
   };
-  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-359bdd73"]]);
+  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-ee387c0b"]]);
   const cssLoader = (e) => {
     const t = GM_getResourceText(e), o = document.createElement("style");
     return o.innerText = t, document.head.append(o), t;
@@ -310,11 +315,10 @@ ${tab}* `)} */\r
         case "请求参数":
           com = CreateTypes;
           while (el) {
-            if (el.innerHTML.includes("button")) {
-              break;
-            }
-            if (((_b = (_a = el == null ? void 0 : el.firstChild) == null ? void 0 : _a.textContent) == null ? void 0 : _b.startsWith("Query")) || ((_d = (_c = el == null ? void 0 : el.firstChild) == null ? void 0 : _c.textContent) == null ? void 0 : _d.startsWith("Body"))) {
-              list.push(el == null ? void 0 : el.firstChild);
+            if (!el.innerHTML.includes("button")) {
+              if (((_b = (_a = el == null ? void 0 : el.firstChild) == null ? void 0 : _a.textContent) == null ? void 0 : _b.startsWith("Query")) || ((_d = (_c = el == null ? void 0 : el.firstChild) == null ? void 0 : _c.textContent) == null ? void 0 : _d.startsWith("Body"))) {
+                list.push(el == null ? void 0 : el.firstChild);
+              }
             }
             el = el.nextElementSibling;
             if (!el)
@@ -342,7 +346,9 @@ ${tab}* `)} */\r
   }
   init();
   historyWatch(() => {
-    vue.nextTick(() => init());
+    setTimeout(() => {
+      init();
+    }, 100);
   });
 
 })(Vue, ElementPlus);

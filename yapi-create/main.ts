@@ -1,4 +1,4 @@
-import { Component, createApp, nextTick } from 'vue';
+import { Component, createApp } from 'vue';
 import CreateAxios from './CreateAxios.vue';
 import CreateTypes from './CreateTypes.vue';
 import ElementPlus from 'element-plus';
@@ -26,11 +26,10 @@ async function init() {
         case '请求参数':
             com = CreateTypes;
             while(el) {
-                if(el.innerHTML.includes('button')) {
-                    break;
-                }
-                if(el?.firstChild?.textContent?.startsWith('Query') || el?.firstChild?.textContent?.startsWith('Body')) {
-                    list.push(el?.firstChild as HTMLElement);
+                if(!el.innerHTML.includes('button')) {
+                    if(el?.firstChild?.textContent?.startsWith('Query') || el?.firstChild?.textContent?.startsWith('Body')) {
+                        list.push(el?.firstChild as HTMLElement);
+                    }
                 }
                 el = el.nextElementSibling!;
                 if(!el) break;
@@ -56,5 +55,7 @@ async function init() {
 }
 init();
 historyWatch(()=>{
-    nextTick(()=> init());
+    setTimeout(() => {
+        init();
+    }, 100);
 });
