@@ -38,7 +38,14 @@ function modifyDom(dom: Node) {
     });
 }
 
-function getResponseTypes(panel: Element | null | undefined, level = 0) {
+/**
+ * 获取返回类型
+ * @param panel html节点
+ * @param level 递归层级
+ * @param tab tab空格的数量
+ */
+function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0) {
+    // TODO 用字符串拼接，为了注解，后续考虑用对象拼接
     let obj = '{\r\n';
     // 右键复制时，list会为空列表
     let trList = [...(panel?.querySelectorAll(` tr.ant-table-row-level-${level}`) || [])];
@@ -59,9 +66,10 @@ function getResponseTypes(panel: Element | null | undefined, level = 0) {
             type = 'number';
             isCanReturnType = false;
         } else if (type === 'object') {
-            type = getResponseTypes(panel, level + 1);
+            // 当可以直接返回时，不需要加空格
+            type = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1);
         } else if (type === 'object[]') {
-            type = getResponseTypes(panel, level + 1) + '[]';
+            type = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1) + '[]';
         }else{
             isCanReturnType = false;
         }
@@ -70,14 +78,13 @@ function getResponseTypes(panel: Element | null | undefined, level = 0) {
         if (!name || isCanReturnType) {
             return type;
         }
-        // TODO 多行注释优化
         let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent;
-        const tab = '    '.repeat(level + 1);
-        description = description?.trim() ? `${tab}/** ${description.replaceAll('\n', `\n${tab}* `)} */\r\n` : '';
-        const item = `${description}${tab}${name}: ${type};\r\n`;
+        const tabString = '    '.repeat(tab + 1);
+        description = description?.trim() ? `${tabString}/** ${description.replaceAll('\n', `\n${tabString} * `)}\r\n${tabString} */\r\n` : '';
+        const item = `${description}${tabString}${name}: ${type};\r\n`;
         obj += item;
     }
-    obj += `${'    '.repeat(level)}}`;
+    obj += `${'    '.repeat(tab)}}`;
     return obj;
 }
 
