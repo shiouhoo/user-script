@@ -10,6 +10,7 @@ const msgMap = {
     response: '返回数据',
 };
 
+/** 用于记录字段td在tr中的位置 */
 const responsetableIndex = {
     name: -1,
     type: -1,
@@ -39,25 +40,35 @@ function modifyDom(dom: Node) {
 
 function getResponseTypes(panel: Element | null | undefined, level = 0) {
     let obj = '{\r\n';
+    // 右键复制时，list会为空列表
     let trList = [...(panel?.querySelectorAll(` tr.ant-table-row-level-${level}`) || [])];
+    let isCanReturnType = false;
     if((!trList || !trList.length) && level === 0) {
         trList = [<Element>panel];
+        isCanReturnType = true;
         panel = panel?.parentElement;
     }
     if((!trList || !trList.length) && level !== 0) {
         return '{}';
     }
 
-    trList?.forEach((tr) => {
+    for(let tr of trList) {
         const name = tr.querySelector(`td:nth-child(${responsetableIndex.name})`)?.textContent;
-        if(!name) return;
         let type = tr.querySelector(`td:nth-child(${responsetableIndex.type})`)?.textContent?.replaceAll(' ', '');
         if (type === 'integer') {
             type = 'number';
+            isCanReturnType = false;
         } else if (type === 'object') {
             type = getResponseTypes(panel, level + 1);
         } else if (type === 'object[]') {
             type = getResponseTypes(panel, level + 1) + '[]';
+        }else{
+            isCanReturnType = false;
+        }
+        // 当名称为空时，说明是入口，直接返回
+        // 或者是右键复制时类型是对象 || 数组，直接返回
+        if (!name || isCanReturnType) {
+            return type;
         }
         // TODO 多行注释优化
         let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent;
@@ -65,7 +76,7 @@ function getResponseTypes(panel: Element | null | undefined, level = 0) {
         description = description?.trim() ? `${tab}/** ${description.replaceAll('\n', `\n${tab}* `)} */\r\n` : '';
         const item = `${description}${tab}${name}: ${type};\r\n`;
         obj += item;
-    });
+    }
     obj += `${'    '.repeat(level)}}`;
     return obj;
 }
