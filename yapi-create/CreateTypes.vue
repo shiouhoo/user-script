@@ -53,6 +53,10 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
     if((!trList || !trList.length) && level === 0) {
         trList = [<Element>panel];
         isCanReturnType = true;
+        const match = panel?.className.match(/ant-table-row-level-(\d+)/);
+        if(match) {
+            level = parseInt(match[1]);
+        }
         panel = panel?.parentElement;
     }
     if((!trList || !trList.length) && level !== 0) {
