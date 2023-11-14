@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yapi-create
 // @namespace    shiouhoo/yapi-create
-// @version      0.0.6
+// @version      0.0.7
 // @author       shiouhoo
 // @description  这是一个用于yapi的插件，快捷生成ts类型以及axios请求
 // @license      MIT
@@ -14,7 +14,7 @@
 // @grant        GM_getResourceText
 // ==/UserScript==
 
-(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-ee387c0b]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s} ");
+(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-3b66bcae]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s} ");
 
 (function (vue, ElementPlus) {
   'use strict';
@@ -57,7 +57,7 @@ export const ${name} = (params: any): Promise<any> => {
       };
     }
   });
-  const _withScopeId = (n) => (vue.pushScopeId("data-v-ee387c0b"), n = n(), vue.popScopeId(), n);
+  const _withScopeId = (n) => (vue.pushScopeId("data-v-3b66bcae"), n = n(), vue.popScopeId(), n);
   const _hoisted_1 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ vue.createElementVNode("span", null, "复制类型", -1));
   const _sfc_main = /* @__PURE__ */ vue.defineComponent({
     __name: "CreateTypes",
@@ -90,39 +90,50 @@ export const ${name} = (params: any): Promise<any> => {
           });
         });
       }
-      function getResponseTypes(panel, level = 0) {
+      function getResponseTypes(panel, level = 0, tab = 0) {
+        var _a, _b, _c, _d;
         let obj = "{\r\n";
         let trList = [...(panel == null ? void 0 : panel.querySelectorAll(` tr.ant-table-row-level-${level}`)) || []];
+        let isCanReturnType = false;
         if ((!trList || !trList.length) && level === 0) {
           trList = [panel];
+          isCanReturnType = true;
+          const match = panel == null ? void 0 : panel.className.match(/ant-table-row-level-(\d+)/);
+          if (match) {
+            level = parseInt(match[1]);
+          }
           panel = panel == null ? void 0 : panel.parentElement;
         }
         if ((!trList || !trList.length) && level !== 0) {
           return "{}";
         }
-        trList == null ? void 0 : trList.forEach((tr) => {
-          var _a, _b, _c, _d;
+        for (let tr of trList) {
           const name = (_a = tr.querySelector(`td:nth-child(${responsetableIndex.name})`)) == null ? void 0 : _a.textContent;
-          if (!name)
-            return;
           let type2 = (_c = (_b = tr.querySelector(`td:nth-child(${responsetableIndex.type})`)) == null ? void 0 : _b.textContent) == null ? void 0 : _c.replaceAll(" ", "");
           if (type2 === "integer") {
             type2 = "number";
+            isCanReturnType = false;
           } else if (type2 === "object") {
-            type2 = getResponseTypes(panel, level + 1);
+            type2 = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1);
           } else if (type2 === "object[]") {
-            type2 = getResponseTypes(panel, level + 1) + "[]";
+            type2 = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1) + "[]";
+          } else {
+            isCanReturnType = false;
+          }
+          if (!name || isCanReturnType) {
+            return type2;
           }
           let description = (_d = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)) == null ? void 0 : _d.textContent;
-          const tab = "    ".repeat(level + 1);
-          description = (description == null ? void 0 : description.trim()) ? `${tab}/** ${description.replaceAll("\n", `
-${tab}* `)} */\r
+          const tabString = "    ".repeat(tab + 1);
+          description = (description == null ? void 0 : description.trim()) ? `${tabString}/** ${description.replaceAll("\n", `
+${tabString} * `)}\r
+${tabString} */\r
 ` : "";
-          const item = `${description}${tab}${name}: ${type2};\r
+          const item = `${description}${tabString}${name}: ${type2};\r
 `;
           obj += item;
-        });
-        obj += `${"    ".repeat(level)}}`;
+        }
+        obj += `${"    ".repeat(tab)}}`;
         return obj;
       }
       const handleClick = () => {
@@ -262,7 +273,7 @@ ${tab}* `)} */\r
     }
     return target;
   };
-  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-ee387c0b"]]);
+  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-3b66bcae"]]);
   const cssLoader = (e) => {
     const t = GM_getResourceText(e), o = document.createElement("style");
     return o.innerText = t, document.head.append(o), t;
