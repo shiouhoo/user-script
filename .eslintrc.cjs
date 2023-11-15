@@ -37,5 +37,6 @@ module.exports = {
     ],
     rules: {
         '@typescript-eslint/no-explicit-any': 'warn',
+        'no-undef': 'off'
     }
 };

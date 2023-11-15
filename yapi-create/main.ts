@@ -1,4 +1,4 @@
-import { Component, createApp } from 'vue';
+import { Component, createApp, ref } from 'vue';
 import CreateAxios from './CreateAxios.vue';
 import CreateTypes from './CreateTypes.vue';
 import CustomAxiosDialog from './CustomAxiosDialog.vue';
@@ -60,13 +60,19 @@ historyWatch(()=>{
         init();
     }, 100);
 });
-// 定义选项
-GM_registerMenuCommand('自定义axios模版', function () {
-    createApp(CustomAxiosDialog).use(ElementPlus).mount(
+// 创建自定义axios模版弹窗
+const dialogVisible = ref(false);
+createApp(CustomAxiosDialog)
+    .provide('dialogVisible', dialogVisible)
+    .use(ElementPlus).mount(
         (() => {
             const app = document.createElement('div');
+            app.id = 'custom-axios-dialog';
             document.body.appendChild(app);
             return app;
         })(),
     );
+// 定义选项
+GM_registerMenuCommand('自定义axios模版', function () {
+    dialogVisible.value = true;
 });

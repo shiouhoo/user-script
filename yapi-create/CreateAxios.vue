@@ -37,6 +37,9 @@ export const ${name} = (params: any): Promise<any> => {
         ${method === 'get' ? 'params' : 'data: params'},
     });
 };`;
+        break;
+    case '自定义格式':
+        template = eval('`' + GM_getValue('customAxiosTemplate', '') + '`');
     }
     return template;
 };
