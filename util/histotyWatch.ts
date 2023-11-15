@@ -7,13 +7,15 @@ interface historyEvent extends Event {
  * @param action pushState|replaceState
  * @return {function(): *}
  */
-function wrapState(action) {
+function wrapState(action: 'pushState' | 'replaceState') {
     // 获取原始定义
     const raw = history[action];
-    return function (...args) {
+    return function (...args : any) {
         // 更新前的 url
         const urlBefore = window.location.href;
         // 经过包装的pushState或replaceState
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         const wrapper = raw.apply(this, args);
         // 更新后的 url
         const urlAfter = window.location.href;
@@ -32,7 +34,7 @@ function wrapState(action) {
     };
 }
 
-export const historyWatch = (pushStateCallback?:(stateInfo)=>void, replaceStateCallback?:(stateInfo)=>void)=>{
+export const historyWatch = (pushStateCallback?:(stateInfo: any)=>void, replaceStateCallback?:(stateInfo: any)=>void)=>{
 
     // 修改原始定义
     history.pushState = wrapState('pushState');
