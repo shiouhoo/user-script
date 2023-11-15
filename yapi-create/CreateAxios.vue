@@ -4,6 +4,43 @@ import { ElMessage } from 'element-plus';
 
 const btnRef = ref<HTMLElement>();
 
+const typeMsg = ref('默认格式');
+
+/**
+ * 生成axois请求模板
+ */
+const createTemplate = ({
+    method = '',
+    url = '',
+    name = '',
+    describtion = '',
+}: {
+    method: string;
+    url: string;
+    name: string;
+    describtion: string;
+}) => {
+    let template = '';
+    switch(typeMsg.value) {
+    case '默认格式':
+        template = `/** ${describtion} */
+export const ${name} = (params: any): Promise<any> => {
+    return axios.${method}('${url}', ${method === 'get' ? '{ params }' : 'params'});
+};`;
+        break;
+    case 'request--格式':
+        template = `/** ${describtion} */
+export const ${name} = (params: any): Promise<any> => {
+    return request({
+        url: '${url}',
+        method: '${method.toUpperCase()}',
+        ${method === 'get' ? 'params' : 'data: params'},
+    });
+};`;
+    }
+    return template;
+};
+
 const handleClick = () => {
     const panel = btnRef.value?.parentElement?.parentElement?.nextElementSibling;
 
@@ -18,11 +55,12 @@ const handleClick = () => {
         /** 注释 */
         const describtion = panel.querySelector('.ant-row .colName')?.textContent;
 
-        const template = `
-/** ${describtion} */
-export const ${name} = (params: any): Promise<any> => {
-    return axios.${method}('${url}', ${method === 'get' ? '{ params }' : 'params'});
-};`;
+        const template = createTemplate({
+            method: method || '',
+            url: url || '',
+            name: name || '',
+            describtion: describtion || '',
+        });
         navigator.clipboard.writeText(template.trim());
         ElMessage.success('成功复制到剪切板');
     }
@@ -32,7 +70,16 @@ export const ${name} = (params: any): Promise<any> => {
 
 <template>
     <div ref="btnRef">
-        <el-button @click="handleClick">复制axios请求</el-button>
+        <el-dropdown split-button type="primary" @click="handleClick">
+            复制axios请求({{ typeMsg }})
+            <template #dropdown>
+                <el-dropdown-menu>
+                    <el-dropdown-item @click="typeMsg = '默认格式'"> 默认格式 </el-dropdown-item>
+                    <el-dropdown-item @click="typeMsg = 'request--格式'"> request--格式 </el-dropdown-item>
+                    <el-dropdown-item @click="typeMsg = '自定义格式'"> 自定义格式 </el-dropdown-item>
+                </el-dropdown-menu>
+            </template>
+        </el-dropdown>
     </div>
 </template>
 

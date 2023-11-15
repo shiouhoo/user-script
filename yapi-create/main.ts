@@ -1,6 +1,7 @@
 import { Component, createApp } from 'vue';
 import CreateAxios from './CreateAxios.vue';
 import CreateTypes from './CreateTypes.vue';
+import CustomAxiosDialog from './CustomAxiosDialog.vue';
 import ElementPlus from 'element-plus';
 import 'element-plus/dist/index.css';
 import { historyWatch } from '../util/histotyWatch';
@@ -58,4 +59,14 @@ historyWatch(()=>{
     setTimeout(() => {
         init();
     }, 100);
+});
+// 定义选项
+GM_registerMenuCommand('自定义axios模版', function () {
+    createApp(CustomAxiosDialog).use(ElementPlus).mount(
+        (() => {
+            const app = document.createElement('div');
+            document.body.appendChild(app);
+            return app;
+        })(),
+    );
 });

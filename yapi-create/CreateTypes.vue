@@ -4,7 +4,7 @@ import { ElMessage } from 'element-plus';
 
 const btnRef = ref<HTMLElement>();
 
-const type = ref('');
+const type = ref<'request' | 'response'>('request');
 const msgMap = {
     request: '请求参数',
     response: '返回数据',
@@ -44,11 +44,11 @@ function modifyDom(dom: Node) {
  * @param level 递归层级
  * @param tab tab空格的数量
  */
-function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0) {
+function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0): string {
     // TODO 用字符串拼接，为了注解，后续考虑用对象拼接
     let obj = '{\r\n';
     // 右键复制时，list会为空列表
-    let trList = [...(panel?.querySelectorAll(` tr.ant-table-row-level-${level}`) || [])];
+    let trList = Array.from(panel?.querySelectorAll(` tr.ant-table-row-level-${level}`) || []);
     let isCanReturnType = false;
     if((!trList || !trList.length) && level === 0) {
         trList = [<Element>panel];
@@ -80,7 +80,7 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
         // 当名称为空时，说明是入口，直接返回
         // 或者是右键复制时类型是对象 || 数组，直接返回
         if (!name || isCanReturnType) {
-            return type;
+            return type || '';
         }
         let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent;
         const tabString = '    '.repeat(tab + 1);
