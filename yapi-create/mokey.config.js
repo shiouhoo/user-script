@@ -6,7 +6,7 @@ export default {
         name: 'yapi-create',
         icon: 'https://vitejs.dev/logo.svg',
         namespace: 'shiouhoo/yapi-create',
-        version: '0.0.8',
+        version: '0.0.9',
         license: 'MIT',
         description: '这是一个用于yapi的插件，快捷生成ts类型以及axios请求',
         match: [' *://*.trscd.com.cn/project/*'],
