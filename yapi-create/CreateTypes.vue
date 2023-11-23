@@ -85,7 +85,16 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
             const pNodeList = otherInfoDom.querySelectorAll('p');
             for(const pNode of Array.from(pNodeList)) {
                 if(pNode.textContent?.includes('枚举')) {
-                    enumString = pNode.lastChild?.textContent?.replaceAll(',', ' | ') || type || '';
+                    let txt = pNode.lastChild?.textContent || '';
+                    for(let item of txt.split(',')) {
+                        if(Number.isNaN(Number(item))) {
+                            enumString += `'${item.trim()}' | `;
+                        }else{
+                            enumString += `${item.trim()} | `;
+                        }
+                    }
+                    enumString = enumString.slice(0, -3) || type || '';
+                    break;
                 }
             }
             type = enumString;

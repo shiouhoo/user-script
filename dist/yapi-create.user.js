@@ -17,7 +17,7 @@
 // @grant        GM_setValue
 // ==/UserScript==
 
-(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-c4d8153e]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s}.input[data-v-395bcdc4]{margin-top:20px}.confirm[data-v-395bcdc4]{margin:20px auto;display:block} ");
+(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-098de0bb]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s}.input[data-v-395bcdc4]{margin-top:20px}.confirm[data-v-395bcdc4]{margin:20px auto;display:block} ");
 
 (function (vue, ElementPlus) {
   'use strict';
@@ -131,7 +131,7 @@ export const ${name} = (params: any): Promise<any> => {
       };
     }
   });
-  const _withScopeId$1 = (n) => (vue.pushScopeId("data-v-c4d8153e"), n = n(), vue.popScopeId(), n);
+  const _withScopeId$1 = (n) => (vue.pushScopeId("data-v-098de0bb"), n = n(), vue.popScopeId(), n);
   const _hoisted_1$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ vue.createElementVNode("span", null, "复制类型", -1));
   const _sfc_main$1 = /* @__PURE__ */ vue.defineComponent({
     __name: "CreateTypes",
@@ -166,7 +166,7 @@ export const ${name} = (params: any): Promise<any> => {
         });
       }
       function getResponseTypes(panel, level = 0, tab = 0) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i;
         let obj = "{\r\n";
         let trList = Array.from((panel == null ? void 0 : panel.querySelectorAll(` tr.ant-table-row-level-${level}`)) || []);
         let isCanReturnType = false;
@@ -201,7 +201,16 @@ export const ${name} = (params: any): Promise<any> => {
             const pNodeList = otherInfoDom.querySelectorAll("p");
             for (const pNode of Array.from(pNodeList)) {
               if ((_e = pNode.textContent) == null ? void 0 : _e.includes("枚举")) {
-                enumString = ((_g = (_f = pNode.lastChild) == null ? void 0 : _f.textContent) == null ? void 0 : _g.replaceAll(",", " | ")) || type2 || "";
+                let txt = ((_f = pNode.lastChild) == null ? void 0 : _f.textContent) || "";
+                for (let item2 of txt.split(",")) {
+                  if (Number.isNaN(Number(item2))) {
+                    enumString += `'${item2.trim()}' | `;
+                  } else {
+                    enumString += `${item2.trim()} | `;
+                  }
+                }
+                enumString = enumString.slice(0, -3) || type2 || "";
+                break;
               }
             }
             type2 = enumString;
@@ -209,9 +218,9 @@ export const ${name} = (params: any): Promise<any> => {
           if (!name2 || isCanReturnType) {
             return type2 || "";
           }
-          let description = (_h = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)) == null ? void 0 : _h.textContent;
+          let description = (_g = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)) == null ? void 0 : _g.textContent;
           const tabString = "    ".repeat(tab + 1);
-          const required = ((_j = (_i = tr.querySelector(`td:nth-child(${responsetableIndex.required})`)) == null ? void 0 : _i.textContent) == null ? void 0 : _j.trim()) === "必须";
+          const required = ((_i = (_h = tr.querySelector(`td:nth-child(${responsetableIndex.required})`)) == null ? void 0 : _h.textContent) == null ? void 0 : _i.trim()) === "必须";
           const descEnter = (description == null ? void 0 : description.includes("\n")) ? `\r
 ${tabString}` : " ";
           description = (description == null ? void 0 : description.trim()) ? `${tabString}/** ${description.replaceAll("\n", `
@@ -347,7 +356,7 @@ ${tabString} * `)}${descEnter} */\r
     }
     return target;
   };
-  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-c4d8153e"]]);
+  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-098de0bb"]]);
   const _withScopeId = (n) => (vue.pushScopeId("data-v-395bcdc4"), n = n(), vue.popScopeId(), n);
   const _hoisted_1 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ vue.createElementVNode("p", null, "在下方输入框中输入你的axios模版，采用es6的模版方式解析，提供了4个变量，describtion，name，method，url ：", -1));
   const _sfc_main = /* @__PURE__ */ vue.defineComponent({
