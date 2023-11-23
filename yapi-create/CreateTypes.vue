@@ -16,6 +16,7 @@ const responsetableIndex = {
     type: -1,
     required: -1,
     description: -1,
+    other: -1,
 };
 
 const targetDom = ref();
@@ -52,6 +53,7 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
     let isCanReturnType = false;
     if((!trList || !trList.length) && level === 0) {
         trList = [<Element>panel];
+        // 只有右键复制才会为true
         isCanReturnType = true;
         const match = panel?.className.match(/ant-table-row-level-(\d+)/);
         if(match) {
@@ -62,7 +64,6 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
     if((!trList || !trList.length) && level !== 0) {
         return '{}';
     }
-
     for(let tr of trList) {
         const name = tr.querySelector(`td:nth-child(${responsetableIndex.name})`)?.textContent;
         let type = tr.querySelector(`td:nth-child(${responsetableIndex.type})`)?.textContent?.replaceAll(' ', '');
@@ -70,12 +71,24 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
             type = 'number';
             isCanReturnType = false;
         } else if (type === 'object') {
-            // 当可以直接返回时，不需要加空格
+            // 当可以直接返回时，不需要加空格,因为会直接返回类型
             type = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1);
         } else if (type === 'object[]') {
             type = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1) + '[]';
         }else{
             isCanReturnType = false;
+        }
+        // 是否为枚举
+        const otherInfoDom = tr.querySelector(`td:nth-child(${responsetableIndex.other})`);
+        if(otherInfoDom?.textContent?.includes('枚举')) {
+            let enumString = '';
+            const pNodeList = otherInfoDom.querySelectorAll('p');
+            for(const pNode of Array.from(pNodeList)) {
+                if(pNode.textContent?.includes('枚举')) {
+                    enumString = pNode.lastChild?.textContent?.replaceAll(',', ' | ') || type || '';
+                }
+            }
+            type = enumString;
         }
         // 当名称为空时，说明是入口，直接返回
         // 或者是右键复制时类型是对象 || 数组，直接返回
@@ -84,10 +97,12 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
         }
         let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent;
         const tabString = '    '.repeat(tab + 1);
+
+        const required = tr.querySelector(`td:nth-child(${responsetableIndex.required})`)?.textContent?.trim() === '必须';
         // 注解
         const descEnter = description?.includes('\n') ? `\r\n${tabString}` : ' ';
         description = description?.trim() ? `${tabString}/** ${description.replaceAll('\n', `\n${tabString} * `)}${descEnter} */\r\n` : '';
-        const item = `${description}${tabString}${name}: ${type};\r\n`;
+        const item = `${description}${tabString}${name}${required ? '' : '?'}: ${type};\r\n`;
         obj += item;
     }
     obj += `${'    '.repeat(tab)}}`;
@@ -98,36 +113,35 @@ const handleClick = () => {
 
     let panel = btnRef.value?.parentElement?.parentElement?.nextElementSibling;
     let obj = '{\r\n';
+    // 保证顺序正确
+    panel?.querySelectorAll('.ant-table-body .ant-table-thead tr th').forEach((item, index) => {
+        if (item.textContent?.includes('名称')) {
+            responsetableIndex.name = index + 1;
+        } else if (item.textContent?.includes('类型')) {
+            responsetableIndex.type = index + 1;
+        } else if (item.textContent?.includes('是否必须')) {
+            responsetableIndex.required = index + 1;
+        } else if (item.textContent?.includes('备注')) {
+            responsetableIndex.description = index + 1;
+        }else if (item.textContent?.includes('其他')) {
+            responsetableIndex.other = index + 1;
+        }
+    });
     if (type.value === 'request') {
-        let nameIndex = -1;
-        let typeIndex = -1;
-        let requiredIndex = -1;
-        let descriptionIndex = -1;
-        panel?.querySelectorAll('.ant-table-body .ant-table-thead tr th').forEach((item, index) => {
-            if (item.textContent?.includes('参数名称')) {
-                nameIndex = index + 1;
-            } else if (item.textContent?.includes('类型')) {
-                typeIndex = index + 1;
-            } else if (item.textContent?.includes('是否必须')) {
-                requiredIndex = index + 1;
-            } else if (item.textContent?.includes('备注')) {
-                descriptionIndex = index + 1;
-            }
-        });
         const trList = panel?.querySelectorAll('.ant-table-body table tbody tr');
         Array.from(trList || []).forEach((tr) => {
-            const name = tr.querySelector(`td:nth-child(${nameIndex})`)?.textContent || '';
-            let type = tr.querySelector(`td:nth-child(${typeIndex})`)?.textContent || 'any';
+            const name = tr.querySelector(`td:nth-child(${responsetableIndex.name})`)?.textContent || '';
+            let type = tr.querySelector(`td:nth-child(${responsetableIndex.type})`)?.textContent || 'any';
             if (type?.includes('文本')) {
                 type = 'string';
             }
-            const required = tr.querySelector(`td:nth-child(${requiredIndex})`)?.textContent?.includes('是');
+            const required = tr.querySelector(`td:nth-child(${responsetableIndex.required})`)?.textContent?.includes('是');
 
-            let description = tr.querySelector(`td:nth-child(${descriptionIndex})`)?.textContent;
+            let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent;
             const descBeforeEnter = description?.includes('\n') ? '\r\n      * ' : ' ';
             const descEnter = description?.includes('\n') ? '\r\n      ' : ' ';
-            description = description?.trim() ? `    /**${descBeforeEnter}${description?.replaceAll('\n', '\n      * ')}${descEnter}*/\r\n    ` : '';
-            const item = `${description}${name}${required ? '' : '?'}: ${type};\r\n`;
+            description = description?.trim() ? `    /**${descBeforeEnter}${description?.replaceAll('\n', '\n      * ')}${descEnter}*/\r\n` : '';
+            const item = `${description}    ${name}${required ? '' : '?'}: ${type};\r\n`;
             obj += item;
         });
         obj += '}';
@@ -149,19 +163,6 @@ onMounted(() => {
     if (text?.includes('Body') || text?.includes('Query')) {
         type.value = 'request';
     } else if (text?.includes('返回数据')) {
-
-        btnRef.value?.parentElement?.parentElement?.nextElementSibling?.querySelectorAll('.ant-table-body .ant-table-thead tr th').forEach((item, index) => {
-            if (item.textContent?.includes('名称')) {
-                responsetableIndex.name = index + 1;
-            } else if (item.textContent?.includes('类型')) {
-                responsetableIndex.type = index + 1;
-            } else if (item.textContent?.includes('是否必须')) {
-                responsetableIndex.required = index + 1;
-            } else if (item.textContent?.includes('备注')) {
-                responsetableIndex.description = index + 1;
-            }
-        });
-
         type.value = 'response';
         let tableDom = btnRef.value?.parentElement?.parentElement?.nextElementSibling?.querySelector('.ant-table-tbody');
         tableDom?.querySelectorAll('tr').forEach((item)=>{

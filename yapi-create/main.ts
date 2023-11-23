@@ -60,6 +60,19 @@ historyWatch(()=>{
         init();
     }, 100);
 });
+
+setTimeout(() => {
+    const tabsList = document.querySelectorAll('.ant-tabs-tab');
+    for(const tab of Array.from(tabsList)) {
+        if(tab.textContent === '预览') {
+            tab.addEventListener('click', () => {
+                setTimeout(() => {
+                    init();
+                }, 100);
+            });
+        }
+    }
+});
 // 创建自定义axios模版弹窗
 const dialogVisible = ref(false);
 createApp(CustomAxiosDialog)
