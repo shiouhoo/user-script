@@ -84,7 +84,9 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
         }
         let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent;
         const tabString = '    '.repeat(tab + 1);
-        description = description?.trim() ? `${tabString}/** ${description.replaceAll('\n', `\n${tabString} * `)}\r\n${tabString} */\r\n` : '';
+        // 注解
+        const descEnter = description?.includes('\n') ? `\r\n${tabString}` : ' ';
+        description = description?.trim() ? `${tabString}/** ${description.replaceAll('\n', `\n${tabString} * `)}${descEnter} */\r\n` : '';
         const item = `${description}${tabString}${name}: ${type};\r\n`;
         obj += item;
     }
