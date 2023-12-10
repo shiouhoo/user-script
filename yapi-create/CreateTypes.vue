@@ -39,17 +39,40 @@ function modifyDom(dom: Node) {
     });
 }
 
+/** 更新表格地段字段顺序 */
+function updateIndex() {
+    let panel = btnRef.value?.parentElement?.parentElement?.nextElementSibling;
+    // 保证顺序正确
+    panel?.querySelectorAll('.ant-table-body .ant-table-thead tr th').forEach((item, index) => {
+        if (item.textContent?.includes('名称')) {
+            responsetableIndex.name = index + 1;
+        } else if (item.textContent?.includes('类型')) {
+            responsetableIndex.type = index + 1;
+        } else if (item.textContent?.includes('是否必须')) {
+            responsetableIndex.required = index + 1;
+        } else if (item.textContent?.includes('备注')) {
+            responsetableIndex.description = index + 1;
+        }else if (item.textContent?.includes('其他')) {
+            responsetableIndex.other = index + 1;
+        }
+    });
+}
+
 /**
  * 获取返回类型
  * @param panel html节点
  * @param level 递归层级
  * @param tab tab空格的数量
  */
-function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0): string {
+function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0, start = 0, end = Infinity): string {
     // TODO 用字符串拼接，为了注解，后续考虑用对象拼接
     let obj = '{\r\n';
     // 右键复制时，list会为空列表
-    let trList = Array.from(panel?.querySelectorAll(` tr.ant-table-row-level-${level}`) || []);
+    let trList = Array.from(panel?.querySelectorAll(`tr.ant-table-row-level-${level}`) || []);
+    trList = trList.filter((item) => {
+        const idx = Array.prototype.indexOf.call(item.parentElement!.childNodes, item);
+        return idx >= start && idx <= end;
+    });
     let isCanReturnType = false;
     if((!trList || !trList.length) && level === 0) {
         trList = [<Element>panel];
@@ -67,14 +90,26 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
     for(let tr of trList) {
         const name = tr.querySelector(`td:nth-child(${responsetableIndex.name})`)?.textContent;
         let type = tr.querySelector(`td:nth-child(${responsetableIndex.type})`)?.textContent?.replaceAll(' ', '');
+        // 计算end
+        let nextDom = tr?.nextElementSibling;
+        while(nextDom) {
+            if(nextDom?.className.match(/ant-table-row-level-(\d+)/)) {
+                const _level = parseInt(nextDom.className.match(/ant-table-row-level-(\d+)/)![1]);
+                if(_level === level) {
+                    end = Array.prototype.indexOf.call(tr!.parentElement!.childNodes, nextDom);
+                    break;
+                }
+            }
+            nextDom = nextDom?.nextElementSibling;
+        }
         if (type === 'integer') {
             type = 'number';
             isCanReturnType = false;
         } else if (type === 'object') {
             // 当可以直接返回时，不需要加空格,因为会直接返回类型
-            type = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1);
+            type = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1, Array.prototype.indexOf.call(tr.parentElement!.childNodes, tr), end);
         } else if (type === 'object[]') {
-            type = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1) + '[]';
+            type = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1, Array.prototype.indexOf.call(tr.parentElement!.childNodes, tr), end) + '[]';
         }else{
             isCanReturnType = false;
         }
@@ -104,7 +139,7 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
         if (!name || isCanReturnType) {
             return type || '';
         }
-        let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent;
+        let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent?.trim();
         const tabString = '    '.repeat(tab + 1);
 
         const required = tr.querySelector(`td:nth-child(${responsetableIndex.required})`)?.textContent?.trim() === '必须';
@@ -118,24 +153,11 @@ function getResponseTypes(panel: Element | null | undefined, level = 0, tab = 0)
     return obj;
 }
 
+// TODO https://trsyapi.trscd.com.cn/project/540/interface/api/37288
 const handleClick = () => {
-
     let panel = btnRef.value?.parentElement?.parentElement?.nextElementSibling;
     let obj = '{\r\n';
-    // 保证顺序正确
-    panel?.querySelectorAll('.ant-table-body .ant-table-thead tr th').forEach((item, index) => {
-        if (item.textContent?.includes('名称')) {
-            responsetableIndex.name = index + 1;
-        } else if (item.textContent?.includes('类型')) {
-            responsetableIndex.type = index + 1;
-        } else if (item.textContent?.includes('是否必须')) {
-            responsetableIndex.required = index + 1;
-        } else if (item.textContent?.includes('备注')) {
-            responsetableIndex.description = index + 1;
-        }else if (item.textContent?.includes('其他')) {
-            responsetableIndex.other = index + 1;
-        }
-    });
+    updateIndex();
     if (type.value === 'request') {
         const trList = panel?.querySelectorAll('.ant-table-body table tbody tr');
         Array.from(trList || []).forEach((tr) => {
@@ -146,7 +168,7 @@ const handleClick = () => {
             }
             const required = tr.querySelector(`td:nth-child(${responsetableIndex.required})`)?.textContent?.includes('是');
 
-            let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent;
+            let description = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)?.textContent?.trim();
             const descBeforeEnter = description?.includes('\n') ? '\r\n      * ' : ' ';
             const descEnter = description?.includes('\n') ? '\r\n      ' : ' ';
             description = description?.trim() ? `    /**${descBeforeEnter}${description?.replaceAll('\n', '\n      * ')}${descEnter}*/\r\n` : '';
@@ -162,7 +184,9 @@ const handleClick = () => {
 };
 
 const copyItemTypes = ()=>{
-    const obj = getResponseTypes(targetDom.value.parentElement);
+    updateIndex();
+    const start = Array.prototype.indexOf.call(targetDom.value.parentElement.parentElement!.childNodes, targetDom.value.parentElement);
+    const obj = getResponseTypes(targetDom.value.parentElement, 0, 0, start);
     navigator.clipboard.writeText(obj);
     ElMessage.success('成功复制到剪切板');
 };
