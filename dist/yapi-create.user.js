@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yapi-create
 // @namespace    shiouhoo/yapi-create
-// @version      0.0.9
+// @version      1.0.0
 // @author       shiouhoo
 // @description  这是一个用于yapi的插件，快捷生成ts类型以及axios请求
 // @license      MIT
@@ -17,7 +17,7 @@
 // @grant        GM_setValue
 // ==/UserScript==
 
-(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-098de0bb]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s}.input[data-v-395bcdc4]{margin-top:20px}.confirm[data-v-395bcdc4]{margin:20px auto;display:block} ");
+(t=>{const e=document.createElement("style");e.dataset.source="vite-plugin-monkey",e.textContent=t,document.head.append(e)})(" .menu[data-v-a24f92e6]{position:fixed;z-index:10;border:1px solid #ebeef5;box-shadow:0 2px 12px #0000001a;transition:display 0s}.input[data-v-395bcdc4]{margin-top:20px}.confirm[data-v-395bcdc4]{margin:20px auto;display:block} ");
 
 (function (vue, ElementPlus) {
   'use strict';
@@ -40,13 +40,13 @@
         switch (typeMsg.value) {
           case "默认格式":
             template = `/** ${describtion} */
-export const ${name} = (params: any): Promise<any> => {
-    return axios.${method}('${url}', ${method === "get" ? "{ params }" : "params"});
+export const ${name} = <T>(params: any) => {
+    return tryCatch<T>(axios.${method}('${url}', ${method === "get" ? "{ params }" : "params"}));
 };`;
             break;
           case "request--格式":
             template = `/** ${describtion} */
-export const ${name} = (params: any): Promise<any> => {
+export const ${name} = (params: any) => {
     return request({
         url: '${url}',
         method: '${method.toUpperCase()}',
@@ -131,7 +131,7 @@ export const ${name} = (params: any): Promise<any> => {
       };
     }
   });
-  const _withScopeId$1 = (n) => (vue.pushScopeId("data-v-098de0bb"), n = n(), vue.popScopeId(), n);
+  const _withScopeId$1 = (n) => (vue.pushScopeId("data-v-a24f92e6"), n = n(), vue.popScopeId(), n);
   const _hoisted_1$1 = /* @__PURE__ */ _withScopeId$1(() => /* @__PURE__ */ vue.createElementVNode("span", null, "复制类型", -1));
   const _sfc_main$1 = /* @__PURE__ */ vue.defineComponent({
     __name: "CreateTypes",
@@ -165,10 +165,32 @@ export const ${name} = (params: any): Promise<any> => {
           });
         });
       }
-      function getResponseTypes(panel, level = 0, tab = 0) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+      function updateIndex() {
+        var _a, _b, _c;
+        let panel = (_c = (_b = (_a = btnRef2.value) == null ? void 0 : _a.parentElement) == null ? void 0 : _b.parentElement) == null ? void 0 : _c.nextElementSibling;
+        panel == null ? void 0 : panel.querySelectorAll(".ant-table-body .ant-table-thead tr th").forEach((item, index) => {
+          var _a2, _b2, _c2, _d, _e;
+          if ((_a2 = item.textContent) == null ? void 0 : _a2.includes("名称")) {
+            responsetableIndex.name = index + 1;
+          } else if ((_b2 = item.textContent) == null ? void 0 : _b2.includes("类型")) {
+            responsetableIndex.type = index + 1;
+          } else if ((_c2 = item.textContent) == null ? void 0 : _c2.includes("是否必须")) {
+            responsetableIndex.required = index + 1;
+          } else if ((_d = item.textContent) == null ? void 0 : _d.includes("备注")) {
+            responsetableIndex.description = index + 1;
+          } else if ((_e = item.textContent) == null ? void 0 : _e.includes("其他")) {
+            responsetableIndex.other = index + 1;
+          }
+        });
+      }
+      function getResponseTypes(panel, level = 0, tab = 0, start = 0, end = Infinity) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
         let obj = "{\r\n";
-        let trList = Array.from((panel == null ? void 0 : panel.querySelectorAll(` tr.ant-table-row-level-${level}`)) || []);
+        let trList = Array.from((panel == null ? void 0 : panel.querySelectorAll(`tr.ant-table-row-level-${level}`)) || []);
+        trList = trList.filter((item) => {
+          const idx = Array.prototype.indexOf.call(item.parentElement.childNodes, item);
+          return idx >= start && idx <= end;
+        });
         let isCanReturnType = false;
         if ((!trList || !trList.length) && level === 0) {
           trList = [panel];
@@ -185,13 +207,24 @@ export const ${name} = (params: any): Promise<any> => {
         for (let tr of trList) {
           const name2 = (_a = tr.querySelector(`td:nth-child(${responsetableIndex.name})`)) == null ? void 0 : _a.textContent;
           let type2 = (_c = (_b = tr.querySelector(`td:nth-child(${responsetableIndex.type})`)) == null ? void 0 : _b.textContent) == null ? void 0 : _c.replaceAll(" ", "");
+          let nextDom = tr == null ? void 0 : tr.nextElementSibling;
+          while (nextDom) {
+            if (nextDom == null ? void 0 : nextDom.className.match(/ant-table-row-level-(\d+)/)) {
+              const _level = parseInt(nextDom.className.match(/ant-table-row-level-(\d+)/)[1]);
+              if (_level === level) {
+                end = Array.prototype.indexOf.call(tr.parentElement.childNodes, nextDom);
+                break;
+              }
+            }
+            nextDom = nextDom == null ? void 0 : nextDom.nextElementSibling;
+          }
           if (type2 === "integer") {
             type2 = "number";
             isCanReturnType = false;
           } else if (type2 === "object") {
-            type2 = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1);
+            type2 = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1, Array.prototype.indexOf.call(tr.parentElement.childNodes, tr), end);
           } else if (type2 === "object[]") {
-            type2 = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1) + "[]";
+            type2 = getResponseTypes(panel, level + 1, isCanReturnType ? tab : tab + 1, Array.prototype.indexOf.call(tr.parentElement.childNodes, tr), end) + "[]";
           } else {
             isCanReturnType = false;
           }
@@ -218,9 +251,9 @@ export const ${name} = (params: any): Promise<any> => {
           if (!name2 || isCanReturnType) {
             return type2 || "";
           }
-          let description = (_g = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)) == null ? void 0 : _g.textContent;
+          let description = (_h = (_g = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)) == null ? void 0 : _g.textContent) == null ? void 0 : _h.trim();
           const tabString = "    ".repeat(tab + 1);
-          const required = ((_i = (_h = tr.querySelector(`td:nth-child(${responsetableIndex.required})`)) == null ? void 0 : _h.textContent) == null ? void 0 : _i.trim()) === "必须";
+          const required = ((_j = (_i = tr.querySelector(`td:nth-child(${responsetableIndex.required})`)) == null ? void 0 : _i.textContent) == null ? void 0 : _j.trim()) === "必须";
           const descEnter = (description == null ? void 0 : description.includes("\n")) ? `\r
 ${tabString}` : " ";
           description = (description == null ? void 0 : description.trim()) ? `${tabString}/** ${description.replaceAll("\n", `
@@ -237,31 +270,18 @@ ${tabString} * `)}${descEnter} */\r
         var _a, _b, _c;
         let panel = (_c = (_b = (_a = btnRef2.value) == null ? void 0 : _a.parentElement) == null ? void 0 : _b.parentElement) == null ? void 0 : _c.nextElementSibling;
         let obj = "{\r\n";
-        panel == null ? void 0 : panel.querySelectorAll(".ant-table-body .ant-table-thead tr th").forEach((item, index) => {
-          var _a2, _b2, _c2, _d, _e;
-          if ((_a2 = item.textContent) == null ? void 0 : _a2.includes("名称")) {
-            responsetableIndex.name = index + 1;
-          } else if ((_b2 = item.textContent) == null ? void 0 : _b2.includes("类型")) {
-            responsetableIndex.type = index + 1;
-          } else if ((_c2 = item.textContent) == null ? void 0 : _c2.includes("是否必须")) {
-            responsetableIndex.required = index + 1;
-          } else if ((_d = item.textContent) == null ? void 0 : _d.includes("备注")) {
-            responsetableIndex.description = index + 1;
-          } else if ((_e = item.textContent) == null ? void 0 : _e.includes("其他")) {
-            responsetableIndex.other = index + 1;
-          }
-        });
+        updateIndex();
         if (type.value === "request") {
           const trList = panel == null ? void 0 : panel.querySelectorAll(".ant-table-body table tbody tr");
           Array.from(trList || []).forEach((tr) => {
-            var _a2, _b2, _c2, _d, _e;
+            var _a2, _b2, _c2, _d, _e, _f;
             const name2 = ((_a2 = tr.querySelector(`td:nth-child(${responsetableIndex.name})`)) == null ? void 0 : _a2.textContent) || "";
             let type2 = ((_b2 = tr.querySelector(`td:nth-child(${responsetableIndex.type})`)) == null ? void 0 : _b2.textContent) || "any";
             if (type2 == null ? void 0 : type2.includes("文本")) {
               type2 = "string";
             }
             const required = (_d = (_c2 = tr.querySelector(`td:nth-child(${responsetableIndex.required})`)) == null ? void 0 : _c2.textContent) == null ? void 0 : _d.includes("是");
-            let description = (_e = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)) == null ? void 0 : _e.textContent;
+            let description = (_f = (_e = tr.querySelector(`td:nth-child(${responsetableIndex.description})`)) == null ? void 0 : _e.textContent) == null ? void 0 : _f.trim();
             const descBeforeEnter = (description == null ? void 0 : description.includes("\n")) ? "\r\n      * " : " ";
             const descEnter = (description == null ? void 0 : description.includes("\n")) ? "\r\n      " : " ";
             description = (description == null ? void 0 : description.trim()) ? `    /**${descBeforeEnter}${description == null ? void 0 : description.replaceAll("\n", "\n      * ")}${descEnter}*/\r
@@ -278,7 +298,9 @@ ${tabString} * `)}${descEnter} */\r
         ElementPlus.ElMessage.success("成功复制到剪切板");
       };
       const copyItemTypes = () => {
-        const obj = getResponseTypes(targetDom.value.parentElement);
+        updateIndex();
+        const start = Array.prototype.indexOf.call(targetDom.value.parentElement.parentElement.childNodes, targetDom.value.parentElement);
+        const obj = getResponseTypes(targetDom.value.parentElement, 0, 0, start);
         navigator.clipboard.writeText(obj);
         ElementPlus.ElMessage.success("成功复制到剪切板");
       };
@@ -356,7 +378,7 @@ ${tabString} * `)}${descEnter} */\r
     }
     return target;
   };
-  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-098de0bb"]]);
+  const CreateTypes = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-a24f92e6"]]);
   const _withScopeId = (n) => (vue.pushScopeId("data-v-395bcdc4"), n = n(), vue.popScopeId(), n);
   const _hoisted_1 = /* @__PURE__ */ _withScopeId(() => /* @__PURE__ */ vue.createElementVNode("p", null, "在下方输入框中输入你的axios模版，采用es6的模版方式解析，提供了4个变量，describtion，name，method，url ：", -1));
   const _sfc_main = /* @__PURE__ */ vue.defineComponent({
