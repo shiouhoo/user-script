@@ -24,13 +24,13 @@ const createTemplate = ({
     switch(typeMsg.value) {
     case '默认格式':
         template = `/** ${describtion} */
-export const ${name} = (params: any): Promise<any> => {
-    return axios.${method}('${url}', ${method === 'get' ? '{ params }' : 'params'});
+export const ${name} = <T>(params: any) => {
+    return tryCatch<T>(axios.${method}('${url}', ${method === 'get' ? '{ params }' : 'params'}));
 };`;
         break;
     case 'request--格式':
         template = `/** ${describtion} */
-export const ${name} = (params: any): Promise<any> => {
+export const ${name} = (params: any) => {
     return request({
         url: '${url}',
         method: '${method.toUpperCase()}',
