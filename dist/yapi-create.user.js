@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yapi-create
 // @namespace    shiouhoo/yapi-create
-// @version      1.0.0
+// @version      1.0.1
 // @author       shiouhoo
 // @description  这是一个用于yapi的插件，快捷生成ts类型以及axios请求
 // @license      MIT
@@ -30,6 +30,23 @@
     setup(__props) {
       const btnRef = vue.ref();
       const typeMsg = vue.ref("默认格式");
+      function getContentType() {
+        var _a, _b, _c, _d, _e, _f, _g;
+        let domList = document.querySelectorAll(".interface-title");
+        for (let i = 0; i < domList.length; i++) {
+          if ((_a = domList[i].textContent) == null ? void 0 : _a.includes("请求参数")) {
+            const title = (_b = domList[i].nextElementSibling) == null ? void 0 : _b.querySelector(".col-title");
+            if ((_c = title == null ? void 0 : title.textContent) == null ? void 0 : _c.toLowerCase().includes("headers")) {
+              const rows = ((_e = (_d = domList[i]) == null ? void 0 : _d.nextElementSibling) == null ? void 0 : _e.querySelectorAll(".ant-table-row")) || [];
+              for (let j = 0; j < rows.length; j++) {
+                if (((_g = (_f = rows[j].firstChild) == null ? void 0 : _f.textContent) == null ? void 0 : _g.toLowerCase()) === "content-type") {
+                  return rows[j].childNodes[1].textContent;
+                }
+              }
+            }
+          }
+        }
+      }
       const createTemplate = ({
         method = "",
         url = "",
@@ -37,20 +54,29 @@
         describtion = ""
       }) => {
         let template = "";
+        const contentType = getContentType();
         switch (typeMsg.value) {
           case "默认格式":
+            let contentTpeStr = contentType ? `, {
+        headers: {
+            'Content-Type': '${contentType}',
+        }
+    }` : "";
             template = `/** ${describtion} */
-export const ${name} = <T>(params: any) => {
-    return tryCatch<T>(axios.${method}('${url}', ${method === "get" ? "{ params }" : "params"}));
+export const ${name} = (params: any): Promise<any> => {
+    return axios.${method}('${url}', ${method === "get" ? `{ params${contentTpeStr} }` : `params${contentTpeStr}`});
 };`;
             break;
           case "request--格式":
             template = `/** ${describtion} */
-export const ${name} = (params: any) => {
+export const ${name} = (params: any): Promise<any> => {
     return request({
         url: '${url}',
         method: '${method.toUpperCase()}',
         ${method === "get" ? "params" : "data: params"},
+        ${contentType ? `headers: {
+            'Content-Type': '${contentType}',
+        }` : ""}
     });
 };`;
             break;

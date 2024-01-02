@@ -6,6 +6,24 @@ const btnRef = ref<HTMLElement>();
 
 const typeMsg = ref('默认格式');
 
+function getContentType() {
+    let domList = document.querySelectorAll('.interface-title');
+    for(let i = 0;i < domList.length;i++) {
+        if(domList[i].textContent?.includes('请求参数')) {
+            const title = domList[i].nextElementSibling?.querySelector('.col-title');
+            if(title?.textContent?.toLowerCase().includes('headers')) {
+                const rows = domList[i]?.nextElementSibling?.querySelectorAll('.ant-table-row') || [];
+                for(let j = 0;j < rows.length;j++) {
+                    if(rows[j].firstChild?.textContent?.toLowerCase() === 'content-type') {
+                        // 第二个td
+                        return rows[j].childNodes[1].textContent;
+                    }
+                }
+            }
+        }
+    }
+}
+
 /**
  * 生成axois请求模板
  */
@@ -21,20 +39,35 @@ const createTemplate = ({
     describtion: string;
 }) => {
     let template = '';
+    const contentType = getContentType();
     switch(typeMsg.value) {
     case '默认格式':
+        // eslint-disable-next-line no-case-declarations
+        let contentTpeStr = contentType
+            ? `, {
+        headers: {
+            'Content-Type': '${contentType}',
+        }
+    }`
+            : '';
+
         template = `/** ${describtion} */
-export const ${name} = <T>(params: any) => {
-    return tryCatch<T>(axios.${method}('${url}', ${method === 'get' ? '{ params }' : 'params'}));
+export const ${name} = (params: any): Promise<any> => {
+    return axios.${method}('${url}', ${method === 'get' ? `{ params${contentTpeStr} }` : `params${contentTpeStr}`});
 };`;
         break;
     case 'request--格式':
         template = `/** ${describtion} */
-export const ${name} = (params: any) => {
+export const ${name} = (params: any): Promise<any> => {
     return request({
         url: '${url}',
         method: '${method.toUpperCase()}',
         ${method === 'get' ? 'params' : 'data: params'},
+        ${contentType
+        ? `headers: {
+            'Content-Type': '${contentType}',
+        }`
+        : ''}
     });
 };`;
         break;
